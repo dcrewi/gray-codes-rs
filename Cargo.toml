@@ -1,0 +1,16 @@
+[package]
+name = "gray-codes"
+version = "0.1.0"
+authors = ["David Creswick <dcrewi@gyrae.net>"]
+description = "Iterators over binary Gray codes; utilities for efficiently visiting all subsets of a collection"
+license = "MIT/Apache-2.0"
+repository = "https://github.com/dcrewi/gray-codes-rs"
+documentation = "https://docs.rs/gray-codes/"
+readme = "README.md"
+keywords = ["gray", "codes", "subset"]
+categories = ["algorithms"]
+
+[badges]
+travis-ci = { repository = "dcrewi/gray-codes-rs" }
+
+[dependencies]
