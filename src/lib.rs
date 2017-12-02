@@ -124,7 +124,7 @@ macro_rules! gray_code_impl {
                 val ^ (val >> 1)
             }
 
-            /// Convert a Gray code the the corresponding binary value.
+            /// Convert a Gray code from the corresponding binary value.
             #[inline]
             pub fn to_index(code: $uint_ty) -> $uint_ty {
                 let mut val = code;
