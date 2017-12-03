@@ -88,7 +88,8 @@ macro_rules! gray_code_impl {
             ///
             /// # Panics
             ///
-            /// Panics if `bits` is larger than the unsigned integer type.
+            /// Panics if `bits` exceeds the bit-width of the unsigned
+            /// integer type.
             pub fn with_bits(bits: usize) -> $nm {
                 assert!(bits <= $bits);
                 $nm {
@@ -234,18 +235,17 @@ pub enum SetMutation {
 }
 
 
-/// Iterator yielding `SetMutation`s, allowing the efficient
-/// construction of all subsets of n items
+/// Iterator yielding `SetMutation`s that can be used to efficiently
+/// visit all subsets of n items
 ///
-/// The iterator yields `SetMutation` operations, which instruct one
-/// to either include or exclude a single item by index. Starting from
-/// an empty set, the instructions will cause every subset of n items
-/// to be visited exactly once.
+/// The pattern of use is to in-place mutate a working set by
+/// following the `SetMutation` instructions, starting from an
+/// initially empty set. Every subset will be generated, none will be
+/// repeated, and only a single mutation per iteration is necessary.
 ///
 /// # Examples
 ///
-/// Visit every subset of a set of strings by mutating a `HashSet`
-/// exactly once per iteration.
+/// Visit every subset of a set of strings by mutating a `HashSet`.
 ///
 /// ```
 /// use std::collections::HashSet;
@@ -253,7 +253,7 @@ pub enum SetMutation {
 ///
 /// static STRINGS: &[&str] = &["apple", "moon", "pie"];
 ///
-/// let mut subset = HashSet::with_capacity(STRINGS.len());
+/// let mut subset = HashSet::new();
 /// // Visit the empty set here, if desired.
 /// println!("{:?}", subset);
 /// for mutation in InclusionExclusion::of_len(STRINGS.len()) {
@@ -262,13 +262,16 @@ pub enum SetMutation {
 ///         SetMutation::Insert(i) => { subset.insert(STRINGS[i]); },
 ///         SetMutation::Remove(i) => { subset.remove(STRINGS[i]); },
 ///     }
-///     // Visit the never-before-seen subset here.
+///     // Visit the unique subset here.
 ///     println!("{:?}", subset);
 /// }
 /// ```
 ///
 /// Iterate over the 15 possible ways to sum four numbers using only a
-/// single addition or subtraction per iteration.
+/// single addition or subtraction per iteration. This technique can
+/// be used to brute-force [the subset sum
+/// problem](https://en.wikipedia.org/wiki/Subset_sum_problem) faster
+/// than the naive, obvious way.
 ///
 /// ```
 /// use gray_codes::{InclusionExclusion, SetMutation};
@@ -372,17 +375,17 @@ fn inclusion_exclusion() {
 
 /// Iterator yielding subsets of a slice
 ///
-/// Use the static method `Subsets::of(...)` to construct the iterator.
+/// Use the static method `Subsets::of(...)` to construct this
+/// iterator.
 ///
 /// The input is a slice of type `&'a [T]` and the output is any
 /// container `C` that is `FromIterator<&'a T>`. In many cases, it's
 /// good enough for the collection `C` to be `Vec<&'a T>`, in which
 /// case you can use the convenient `VecSubsets` type alias.
 ///
-/// A new `C`-container is created every iteration, which is an
-/// O(set_len) operation per iteration. Greater efficiency (O(1) per
-/// iteration) can be gained by using the `InclusionExclusion`
-/// iterator to perform mutation directly on your own container.
+/// Note that a new container of type `C` is created each iteration,
+/// which is an O(set_len) operation. It can be more efficient to use
+/// the `InclusionExclusion` iterator to mutate your own container.
 ///
 /// # Examples
 ///
@@ -393,24 +396,21 @@ fn inclusion_exclusion() {
 /// static NUMBERS: &[u32] = &[0,1,2,3];
 /// let mut subsets: Vec<_> = VecSubsets::of(NUMBERS).collect();
 /// assert!(subsets.len() == 16);
-/// subsets.sort();
-/// // (Note that this is sorted order, not the order in which the
-/// // Subsets iterator generates items.)
 /// assert!(subsets == vec![vec![],
 ///                         vec![&0],
 ///                         vec![&0,&1],
-///                         vec![&0,&1,&2],
-///                         vec![&0,&1,&2,&3],
-///                         vec![&0,&1,&3],
-///                         vec![&0,&2],
-///                         vec![&0,&2,&3],
-///                         vec![&0,&3],
 ///                         vec![&1],
 ///                         vec![&1,&2],
-///                         vec![&1,&2,&3],
-///                         vec![&1,&3],
+///                         vec![&0,&1,&2],
+///                         vec![&0,&2],
 ///                         vec![&2],
 ///                         vec![&2,&3],
+///                         vec![&0,&2,&3],
+///                         vec![&0,&1,&2, &3],
+///                         vec![&1,&2,&3],
+///                         vec![&1,&3],
+///                         vec![&0,&1,&3],
+///                         vec![&0,&3],
 ///                         vec![&3]]);
 /// ```
 ///
@@ -423,16 +423,14 @@ fn inclusion_exclusion() {
 /// static CHARS: &[char] = &['c', 'a', 't'];
 /// let subsets: HashSet<String> = Subsets::of(CHARS).collect();
 /// assert!(subsets.len() == 8);
-/// // (Note that this is not the order in which the Subsets iterator
-/// // generates items. It is merely convenient for checking the results.)
 /// assert!(subsets.contains(""));
 /// assert!(subsets.contains("c"));
-/// assert!(subsets.contains("a"));
-/// assert!(subsets.contains("t"));
 /// assert!(subsets.contains("ca"));
+/// assert!(subsets.contains("a"));
 /// assert!(subsets.contains("at"));
-/// assert!(subsets.contains("ct"));
 /// assert!(subsets.contains("cat"));
+/// assert!(subsets.contains("ct"));
+/// assert!(subsets.contains("t"));
 /// ```
 #[derive(Clone, Debug)]
 pub struct Subsets<'a, T:'a, C> {
