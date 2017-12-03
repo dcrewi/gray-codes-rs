@@ -1,6 +1,6 @@
 [package]
 name = "gray-codes"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["David Creswick <dcrewi@gyrae.net>"]
 description = "Iterators over binary Gray codes; utilities for efficiently visiting all subsets of a collection"
 license = "MIT/Apache-2.0"
